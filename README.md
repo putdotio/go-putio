@@ -9,7 +9,7 @@ Available on [GoDoc](http://godoc.org/github.com/putdotio/go-putio)
 ## Install
 
 ```sh
-go get -u github.com/putdotio/go-putio"
+go get -u github.com/putdotio/go-putio
 ```
 
 ## Usage
