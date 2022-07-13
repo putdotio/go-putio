@@ -2,6 +2,19 @@ package putio
 
 import "fmt"
 
+// File types.
+const (
+	FileTypeFolder  string = "FOLDER"
+	FileTypeFile    string = "FILE"
+	FileTypeAudio   string = "AUDIO"
+	FileTypeVideo   string = "VIDEO"
+	FileTypeImage   string = "IMAGE"
+	FileTypeArchive string = "ARCHIVE"
+	FileTypePDF     string = "PDF"
+	FileTypeText    string = "TEXT"
+	FileTypeSWF     string = "SWF"
+)
+
 // File represents a Put.io file.
 type File struct {
 	ID                int64  `json:"id"`
@@ -18,6 +31,7 @@ type File struct {
 	Icon              string `json:"icon"`
 	CRC32             string `json:"crc32"`
 	IsShared          bool   `json:"is_shared"`
+	FileType          string `json:"file_type"`
 }
 
 func (f *File) String() string {
@@ -50,6 +64,7 @@ type Transfer struct {
 	CreatedTorrent bool   `json:"created_torrent"`
 	ClientIP       string `json:"client_ip"`
 
+	// nolint:godox
 	// FIXME: API returns either string or float non-deterministically.
 	// CurrentRatio       float32 `json:"current_ratio"`
 

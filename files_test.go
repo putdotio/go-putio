@@ -3,6 +3,7 @@ package putio
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -30,7 +31,8 @@ func TestFiles_Get(t *testing.T) {
 		"opensubtitles_hash": null,
 		"parent_id": 123,
 		"screenshot": null,
-		"size": 92
+		"size": 92,
+		"file_type": "TEXT"
 	},
     "status": "OK"
 }
@@ -47,6 +49,10 @@ func TestFiles_Get(t *testing.T) {
 		t.Error(err)
 	}
 
+	if file.FileType != FileTypeText {
+		t.Errorf("got: %v, want: %v", file.FileType, FileTypeText)
+	}
+
 	if file.Size != 92 {
 		t.Errorf("got: %v, want: 92", file.Size)
 	}
@@ -56,7 +62,9 @@ func TestFiles_Get(t *testing.T) {
 	if err == nil {
 		t.Fatal("must not return nil")
 	}
-	if err, ok := err.(*ErrorResponse); ok && err.Response.StatusCode != 404 {
+
+	var myErr *ErrorResponse
+	if errors.As(err, &myErr) && myErr.Response.StatusCode != 404 {
 		t.Errorf("error: %s, excepted: 404", err)
 	}
 }
@@ -81,7 +89,8 @@ func TestFiles_List(t *testing.T) {
 		"opensubtitles_hash": null,
 		"parent_id": 123,
 		"screenshot": null,
-		"size": 92
+		"size": 92,
+		"file_type": "TEXT"
 	},
 	{
 		"content_type": "video/x-matroska",
@@ -96,7 +105,8 @@ func TestFiles_List(t *testing.T) {
 		"opensubtitles_hash": "acc2785ffa573c69",
 		"parent_id": 123,
 		"screenshot": "https://put.io/screenshots/aF5rkZVtYV9pV1iWimSOZWJjWWFaXGZdaZBmY2OJY4uJlV5pj5FiXg%3D%3D.jpg",
-		"size": 1155197659
+		"size": 1155197659,
+		"file_type": "VIDEO"
 	}
 ],
 "parent": {
@@ -112,7 +122,8 @@ func TestFiles_List(t *testing.T) {
 	"opensubtitles_hash": null,
 	"parent_id": 0,
 	"screenshot": null,
-	"size": 1155197751
+	"size": 1155197751,
+	"file_type": "FOLDER"
 },
 "status": "OK"
 }
@@ -147,7 +158,9 @@ func TestFiles_List(t *testing.T) {
 	if err == nil {
 		t.Fatal("must not return nil")
 	}
-	if err, ok := err.(*ErrorResponse); ok && err.Response.StatusCode != 404 {
+
+	var myErr *ErrorResponse
+	if errors.As(err, &myErr) && myErr.Response.StatusCode != 404 {
 		t.Errorf("error: %s, excepted: 404", err)
 	}
 }
@@ -451,7 +464,9 @@ http://qthttp.apple.com.edgesuite.net/1010qwoeiuryfg/3340_vod.m3u8
 	if err != nil {
 		t.Error(err)
 	}
-	defer body.Close()
+	defer func() {
+		_ = body.Close()
+	}()
 
 	var buf bytes.Buffer
 	_, err = io.Copy(&buf, body)
@@ -639,11 +654,13 @@ Let's go down.
 	})
 
 	// valid file ID and valid key
-	rc, err := client.Files.DownloadSubtitle(context.Background(), 1, "key0", "")
+	rc, err := client.Files.DownloadSubtitle(context.Background(), 1, "key0")
 	if err != nil {
 		t.Error(err)
 	}
-	defer rc.Close()
+	defer func() {
+		_ = rc.Close()
+	}()
 
 	var buf bytes.Buffer
 	_, err = io.Copy(&buf, rc)
@@ -655,25 +672,31 @@ Let's go down.
 	}
 
 	// negative file ID
-	rc, err = client.Files.DownloadSubtitle(context.Background(), -1, "key0", "")
+	rc, err = client.Files.DownloadSubtitle(context.Background(), -1, "key0")
 	if err == nil {
-		defer rc.Close()
+		defer func() {
+			_ = rc.Close()
+		}()
 		t.Errorf("negative file ID accepted")
 	}
 
 	// invalid key
-	rc, err = client.Files.DownloadSubtitle(context.Background(), 1, "key3", "")
+	rc, err = client.Files.DownloadSubtitle(context.Background(), 1, "key3")
 	if err == nil {
-		defer rc.Close()
+		defer func() {
+			_ = rc.Close()
+		}()
 		t.Errorf("invalid key accepted")
 	}
 
 	// empty key
-	rc, err = client.Files.DownloadSubtitle(context.Background(), 1, "", "")
+	rc, err = client.Files.DownloadSubtitle(context.Background(), 1, "")
 	if err != nil {
 		t.Error(err)
 	}
-	defer rc.Close()
+	defer func() {
+		_ = rc.Close()
+	}()
 
 	buf.Reset()
 	_, err = io.Copy(&buf, rc)

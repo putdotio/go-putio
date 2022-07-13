@@ -1,0 +1,24 @@
+name: Run go tests
+on:
+  pull_request:
+
+concurrency:
+  group: golang-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Get dependencies
+        run: go mod download
+      - name: Run tests
+        run: go test -p 1 -v -race ./...

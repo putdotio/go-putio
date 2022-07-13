@@ -2,7 +2,6 @@ package putio
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"strings"
 )
@@ -20,7 +19,7 @@ func (z *ZipsService) Get(ctx context.Context, id int64) (Zip, error) {
 	}
 
 	var r Zip
-	_, err = z.client.Do(req, &r)
+	_, err = z.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return Zip{}, err
 	}
@@ -38,7 +37,7 @@ func (z *ZipsService) List(ctx context.Context) ([]Zip, error) {
 	var r struct {
 		Zips []Zip
 	}
-	_, err = z.client.Do(req, &r)
+	_, err = z.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return nil, err
 	}
@@ -50,10 +49,10 @@ func (z *ZipsService) List(ctx context.Context) ([]Zip, error) {
 // a zip ID will be returned to keep track of zip process.
 func (z *ZipsService) Create(ctx context.Context, fileIDs ...int64) (int64, error) {
 	if len(fileIDs) == 0 {
-		return 0, fmt.Errorf("no file id given")
+		return 0, ErrNoFileIDIsGiven
 	}
 
-	var ids []string
+	ids := []string{}
 	for _, id := range fileIDs {
 		ids = append(ids, itoa(id))
 	}
@@ -70,7 +69,7 @@ func (z *ZipsService) Create(ctx context.Context, fileIDs ...int64) (int64, erro
 	var r struct {
 		ID int64 `json:"zip_id"`
 	}
-	_, err = z.client.Do(req, &r)
+	_, err = z.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return 0, err
 	}

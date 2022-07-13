@@ -33,22 +33,22 @@ func testMethod(t *testing.T, r *http.Request, want string) {
 	}
 }
 
-func testHeader(t *testing.T, r *http.Request, key, value string) {
+func testHeader(t *testing.T, r *http.Request, key, value string) { // nolint
 	if r.Header.Get(key) != value {
 		t.Errorf("missing header. want: %q: %q", key, value)
 	}
 }
 
 func TestNewClient(t *testing.T) {
-	client := NewClient(nil)
-	if client.BaseURL.String() != defaultBaseURL {
-		t.Errorf("got: %v, want: %v", client.BaseURL.String(), defaultBaseURL)
+	cl := NewClient(nil)
+	if cl.BaseURL.String() != defaultBaseURL {
+		t.Errorf("got: %v, want: %v", cl.BaseURL.String(), defaultBaseURL)
 	}
 }
 
 func TestNewRequest_badURL(t *testing.T) {
-	client := NewClient(nil)
-	_, err := client.NewRequest(context.Background(), "GET", ":", nil)
+	cl := NewClient(nil)
+	_, err := cl.NewRequest(context.Background(), "GET", ":", nil)
 	if err == nil {
 		t.Errorf("bad URL accepted")
 	}
@@ -56,10 +56,10 @@ func TestNewRequest_badURL(t *testing.T) {
 
 func TestNewRequest_customUserAgent(t *testing.T) {
 	userAgent := "test"
-	client := NewClient(nil)
-	client.UserAgent = userAgent
+	cl := NewClient(nil)
+	cl.UserAgent = userAgent
 
-	req, _ := client.NewRequest(context.Background(), "GET", "/test", nil)
+	req, _ := cl.NewRequest(context.Background(), "GET", "/test", nil)
 	if got := req.Header.Get("User-Agent"); got != userAgent {
 		t.Errorf("got: %v, want: %v", got, userAgent)
 	}

@@ -1,4 +1,8 @@
-# putio  [![Build Status](https://travis-ci.org/putdotio/go-putio.svg?branch=master)](https://travis-ci.org/putdotio/go-putio)
+[![Golang CI Linter](https://github.com/putdotio/go-putio/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/putdotio/go-putio/actions/workflows/golangci-lint.yml)
+[![Golang Tests](https://github.com/putdotio/go-putio/actions/workflows/go-test.yml/badge.svg)](https://github.com/putdotio/go-putio/actions/workflows/go-test.yml)
+
+
+# putio
 
 putio is a Go client library for accessing the [Put.io API v2](https://api.put.io/v2/docs).
 
@@ -9,7 +13,8 @@ Available on [GoDoc](http://godoc.org/github.com/putdotio/go-putio)
 ## Install
 
 ```sh
-go get -u github.com/putdotio/go-putio
+go get github.com/putdotio/go-putio@latest
+go get golang.org/x/oauth2@latest
 ```
 
 ## Usage

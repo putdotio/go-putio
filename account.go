@@ -11,13 +11,13 @@ type AccountService struct {
 func (a *AccountService) Info(ctx context.Context) (AccountInfo, error) {
 	req, err := a.client.NewRequest(ctx, "GET", "/v2/account/info", nil)
 	if err != nil {
-		return AccountInfo{}, nil
+		return AccountInfo{}, err
 	}
 
 	var r struct {
 		Info AccountInfo
 	}
-	_, err = a.client.Do(req, &r)
+	_, err = a.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return AccountInfo{}, err
 	}
@@ -28,12 +28,12 @@ func (a *AccountService) Info(ctx context.Context) (AccountInfo, error) {
 func (a *AccountService) Settings(ctx context.Context) (Settings, error) {
 	req, err := a.client.NewRequest(ctx, "GET", "/v2/account/settings", nil)
 	if err != nil {
-		return Settings{}, nil
+		return Settings{}, err
 	}
 	var r struct {
 		Settings Settings
 	}
-	_, err = a.client.Do(req, &r)
+	_, err = a.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return Settings{}, err
 	}

@@ -26,7 +26,12 @@ func (u *UploadService) log(message string) {
 }
 
 // CreateUpload is used for beginning new upload. Use returned location in SendFile function.
-func (u *UploadService) CreateUpload(ctx context.Context, filename string, parentID, length int64, overwrite bool) (location string, err error) {
+func (u *UploadService) CreateUpload(
+	ctx context.Context,
+	filename string,
+	parentID, length int64,
+	overwrite bool,
+) (location string, err error) {
 	u.log(fmt.Sprintf("Creating upload %q at parent=%d", filename, parentID))
 	req, err := u.client.NewRequest(ctx, http.MethodPost, "$upload-tus$", nil)
 	if err != nil {
@@ -46,11 +51,13 @@ func (u *UploadService) CreateUpload(ctx context.Context, filename string, paren
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	u.log(fmt.Sprintln("Status code:", resp.StatusCode))
 	if resp.StatusCode != http.StatusCreated {
-		err = fmt.Errorf("unexpected status: %d", resp.StatusCode)
+		err = fmt.Errorf("%w status: %d", ErrUnexpected, resp.StatusCode)
 		return
 	}
 	location = resp.Header.Get("Location")
@@ -60,7 +67,12 @@ func (u *UploadService) CreateUpload(ctx context.Context, filename string, paren
 // SendFile sends the contents of the file to put.io.
 // In case of an transmission error, you can resume upload but you have to get the correct offset from server by
 // calling GetOffset and must seek to the new offset on io.Reader.
-func (u *UploadService) SendFile(ctx context.Context, r io.Reader, location string, offset int64) (fileID int64, crc32 string, err error) {
+func (u *UploadService) SendFile(
+	ctx context.Context,
+	r io.Reader,
+	location string,
+	offset int64,
+) (fileID int64, crc32 string, err error) {
 	u.log(fmt.Sprintf("Sending file %q offset=%d", location, offset))
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -90,11 +102,13 @@ func (u *UploadService) SendFile(ctx context.Context, r io.Reader, location stri
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	u.log(fmt.Sprintln("Status code:", resp.StatusCode))
 	if resp.StatusCode != http.StatusNoContent {
-		err = fmt.Errorf("unexpected status: %d", resp.StatusCode)
+		err = fmt.Errorf("%w status: %d", ErrUnexpected, resp.StatusCode)
 		return
 	}
 	fileID, err = strconv.ParseInt(resp.Header.Get("putio-file-id"), 10, 64)
@@ -118,16 +132,18 @@ func (u *UploadService) GetOffset(ctx context.Context, location string) (n int64
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	u.log(fmt.Sprintln("Status code:", resp.StatusCode))
 	if resp.StatusCode != http.StatusOK {
-		err = fmt.Errorf("unexpected status: %d", resp.StatusCode)
+		err = fmt.Errorf("%w status: %d", ErrUnexpected, resp.StatusCode)
 		return
 	}
 	n, err = strconv.ParseInt(resp.Header.Get("upload-offset"), 10, 64)
 	u.log(fmt.Sprintln("uploadJob offset:", n))
-	return n, err
+	return n, fmt.Errorf("%w", err)
 }
 
 // TerminateUpload removes incomplete file from the server.
@@ -142,11 +158,13 @@ func (u *UploadService) TerminateUpload(ctx context.Context, location string) (e
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	u.log(fmt.Sprintln("Status code:", resp.StatusCode))
 	if resp.StatusCode != http.StatusNoContent {
-		err = fmt.Errorf("unexpected status: %d", resp.StatusCode)
+		err = fmt.Errorf("%w status: %d", ErrUnexpected, resp.StatusCode)
 		return
 	}
 	return nil
@@ -168,5 +186,5 @@ type timerResetReader struct {
 
 func (r *timerResetReader) Read(p []byte) (int, error) {
 	r.timer.Reset(r.timeout)
-	return r.r.Read(p)
+	return r.r.Read(p) // nolint:wrapcheck
 }

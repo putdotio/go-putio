@@ -2,7 +2,6 @@ package putio
 
 import (
 	"context"
-	"fmt"
 )
 
 // FriendsService is the service to operate on user friends.
@@ -21,7 +20,7 @@ func (f *FriendsService) List(ctx context.Context) ([]Friend, error) {
 		Friends []Friend
 		Total   int
 	}
-	_, err = f.client.Do(req, &r)
+	_, err = f.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +38,7 @@ func (f *FriendsService) WaitingRequests(ctx context.Context) ([]Friend, error) 
 	var r struct {
 		Friends []Friend
 	}
-	_, err = f.client.Do(req, &r)
+	_, err = f.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +49,7 @@ func (f *FriendsService) WaitingRequests(ctx context.Context) ([]Friend, error) 
 // Request sends a friend request to the given username.
 func (f *FriendsService) Request(ctx context.Context, username string) error {
 	if username == "" {
-		return fmt.Errorf("empty username")
+		return ErrEmptyUserName
 	}
 	req, err := f.client.NewRequest(ctx, "POST", "/v2/friends/"+username+"/request", nil)
 	if err != nil {
@@ -58,7 +57,7 @@ func (f *FriendsService) Request(ctx context.Context, username string) error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	_, err = f.client.Do(req, &struct{}{})
+	_, err = f.client.Do(req, &struct{}{}) // nolint:bodyclose
 	if err != nil {
 		return err
 	}
@@ -69,7 +68,7 @@ func (f *FriendsService) Request(ctx context.Context, username string) error {
 // Approve approves a friend request from the given username.
 func (f *FriendsService) Approve(ctx context.Context, username string) error {
 	if username == "" {
-		return fmt.Errorf("empty username")
+		return ErrEmptyUserName
 	}
 
 	req, err := f.client.NewRequest(ctx, "POST", "/v2/friends/"+username+"/approve", nil)
@@ -78,7 +77,7 @@ func (f *FriendsService) Approve(ctx context.Context, username string) error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	_, err = f.client.Do(req, &struct{}{})
+	_, err = f.client.Do(req, &struct{}{}) // nolint:bodyclose
 	if err != nil {
 		return err
 	}
@@ -88,7 +87,7 @@ func (f *FriendsService) Approve(ctx context.Context, username string) error {
 // Deny denies a friend request from the given username.
 func (f *FriendsService) Deny(ctx context.Context, username string) error {
 	if username == "" {
-		return fmt.Errorf("empty username")
+		return ErrEmptyUserName
 	}
 
 	req, err := f.client.NewRequest(ctx, "POST", "/v2/friends/"+username+"/deny", nil)
@@ -97,7 +96,7 @@ func (f *FriendsService) Deny(ctx context.Context, username string) error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	_, err = f.client.Do(req, &struct{}{})
+	_, err = f.client.Do(req, &struct{}{}) // nolint:bodyclose
 	if err != nil {
 		return err
 	}
@@ -107,7 +106,7 @@ func (f *FriendsService) Deny(ctx context.Context, username string) error {
 // Unfriend removed friend from user's friend list.
 func (f *FriendsService) Unfriend(ctx context.Context, username string) error {
 	if username == "" {
-		return fmt.Errorf("empty username")
+		return ErrEmptyUserName
 	}
 
 	req, err := f.client.NewRequest(ctx, "POST", "/v2/friends/"+username+"/unfriend", nil)
@@ -116,7 +115,7 @@ func (f *FriendsService) Unfriend(ctx context.Context, username string) error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	_, err = f.client.Do(req, &struct{}{})
+	_, err = f.client.Do(req, &struct{}{}) // nolint:bodyclose
 	if err != nil {
 		return err
 	}

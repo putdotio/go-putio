@@ -28,7 +28,7 @@ func (f *FilesService) Get(ctx context.Context, id int64) (File, error) {
 	var r struct {
 		File File `json:"file"`
 	}
-	_, err = f.client.Do(req, &r)
+	_, err = f.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return File{}, err
 	}
@@ -46,7 +46,7 @@ func (f *FilesService) List(ctx context.Context, id int64) (children []File, par
 		Parent File   `json:"parent"`
 		Cursor string `json:"cursor"`
 	}
-	_, err = f.client.Do(req, &r)
+	_, err = f.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return
 	}
@@ -61,7 +61,7 @@ func (f *FilesService) List(ctx context.Context, id int64) (children []File, par
 		req.Header.Set("content-type", "application/json")
 		r.Files = nil
 		r.Cursor = ""
-		_, err = f.client.Do(req, &r)
+		_, err = f.client.Do(req, &r) // nolint:bodyclose
 		if err != nil {
 			return
 		}
@@ -86,7 +86,7 @@ func (f *FilesService) URL(ctx context.Context, id int64, useTunnel bool) (strin
 		URL string `json:"url"`
 	}
 
-	_, err = f.client.Do(req, &r)
+	_, err = f.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return "", err
 	}
@@ -97,7 +97,7 @@ func (f *FilesService) URL(ctx context.Context, id int64, useTunnel bool) (strin
 // CreateFolder creates a new folder under parent.
 func (f *FilesService) CreateFolder(ctx context.Context, name string, parent int64) (File, error) {
 	if name == "" {
-		return File{}, fmt.Errorf("empty folder name")
+		return File{}, ErrEmptyFolderName
 	}
 
 	params := url.Values{}
@@ -113,7 +113,7 @@ func (f *FilesService) CreateFolder(ctx context.Context, name string, parent int
 	var r struct {
 		File File `json:"file"`
 	}
-	_, err = f.client.Do(req, &r)
+	_, err = f.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return File{}, err
 	}
@@ -124,10 +124,10 @@ func (f *FilesService) CreateFolder(ctx context.Context, name string, parent int
 // Delete deletes given files.
 func (f *FilesService) Delete(ctx context.Context, files ...int64) error {
 	if len(files) == 0 {
-		return fmt.Errorf("no file id is given")
+		return ErrNoFileIDIsGiven
 	}
 
-	var ids []string
+	ids := []string{}
 	for _, id := range files {
 		ids = append(ids, itoa(id))
 	}
@@ -141,7 +141,7 @@ func (f *FilesService) Delete(ctx context.Context, files ...int64) error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	_, err = f.client.Do(req, &struct{}{})
+	_, err = f.client.Do(req, &struct{}{}) // nolint:bodyclose
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func (f *FilesService) Delete(ctx context.Context, files ...int64) error {
 // Rename change the name of the file to newname.
 func (f *FilesService) Rename(ctx context.Context, id int64, newname string) error {
 	if newname == "" {
-		return fmt.Errorf("new filename cannot be empty")
+		return ErrNewFilenameCanNotBeEmpty
 	}
 
 	params := url.Values{}
@@ -164,7 +164,7 @@ func (f *FilesService) Rename(ctx context.Context, id int64, newname string) err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	_, err = f.client.Do(req, &struct{}{})
+	_, err = f.client.Do(req, &struct{}{}) // nolint:bodyclose
 	if err != nil {
 		return err
 	}
@@ -175,10 +175,10 @@ func (f *FilesService) Rename(ctx context.Context, id int64, newname string) err
 // Move moves files to the given destination.
 func (f *FilesService) Move(ctx context.Context, parent int64, files ...int64) error {
 	if len(files) == 0 {
-		return fmt.Errorf("no files given")
+		return ErrNoFileIsGiven
 	}
 
-	var ids []string
+	ids := []string{}
 	for _, file := range files {
 		ids = append(ids, itoa(file))
 	}
@@ -193,7 +193,7 @@ func (f *FilesService) Move(ctx context.Context, parent int64, files ...int64) e
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	_, err = f.client.Do(req, &struct{}{})
+	_, err = f.client.Do(req, &struct{}{}) // nolint:bodyclose
 	if err != nil {
 		return err
 	}
@@ -213,7 +213,7 @@ func (f *FilesService) Move(ctx context.Context, parent int64, files ...int64) e
 // Use UploadService for larger files.
 func (f *FilesService) Upload(ctx context.Context, r io.Reader, filename string, parent int64) (Upload, error) {
 	if filename == "" {
-		return Upload{}, fmt.Errorf("filename cannot be empty")
+		return Upload{}, ErrFilenameCanNotBeEmpty
 	}
 
 	var buf bytes.Buffer
@@ -223,37 +223,37 @@ func (f *FilesService) Upload(ctx context.Context, r io.Reader, filename string,
 	if parent >= 0 {
 		err := mw.WriteField("parent_id", itoa(parent))
 		if err != nil {
-			return Upload{}, err
+			return Upload{}, fmt.Errorf("%w", err)
 		}
 	}
 
 	formfile, err := mw.CreateFormFile("file", filename)
 	if err != nil {
-		return Upload{}, err
+		return Upload{}, fmt.Errorf("%w", err)
 	}
 
 	_, err = io.Copy(formfile, r)
 	if err != nil {
-		return Upload{}, err
+		return Upload{}, fmt.Errorf("%w", err)
 	}
 
 	err = mw.Close()
 	if err != nil {
-		return Upload{}, err
+		return Upload{}, fmt.Errorf("%w", err)
 	}
 
 	req, err := f.client.NewRequest(ctx, "POST", "$upload$", &buf)
 	if err != nil {
-		return Upload{}, err
+		return Upload{}, fmt.Errorf("%w", err)
 	}
 	req.Header.Set("Content-Type", mw.FormDataContentType())
 
 	var response struct {
 		Upload
 	}
-	_, err = f.client.Do(req, &response)
+	_, err = f.client.Do(req, &response) // nolint:bodyclose
 	if err != nil {
-		return Upload{}, err
+		return Upload{}, fmt.Errorf("%w", err)
 	}
 	return response.Upload, nil
 }
@@ -263,21 +263,21 @@ func (f *FilesService) Upload(ctx context.Context, r io.Reader, filename string,
 // page is -1, all results are returned.
 func (f *FilesService) Search(ctx context.Context, query string, page int64) (Search, error) {
 	if page == 0 || page < -1 {
-		return Search{}, fmt.Errorf("invalid page number")
+		return Search{}, ErrInvalidPageNumber
 	}
 	if query == "" {
-		return Search{}, fmt.Errorf("no query given")
+		return Search{}, ErrNoQueryGiven
 	}
 
 	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/search/"+query+"/page/"+itoa(page), nil)
 	if err != nil {
-		return Search{}, err
+		return Search{}, fmt.Errorf("%w", err)
 	}
 
 	var r Search
-	_, err = f.client.Do(req, &r)
+	_, err = f.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
-		return Search{}, err
+		return Search{}, fmt.Errorf("%w", err)
 	}
 
 	return r, nil
@@ -287,15 +287,15 @@ func (f *FilesService) Search(ctx context.Context, query string, page int64) (Se
 func (f *FilesService) shared(ctx context.Context) ([]share, error) {
 	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/shared", nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	var r struct {
 		Shared []share
 	}
-	_, err = f.client.Do(req, &r)
+	_, err = f.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return r.Shared, nil
@@ -303,20 +303,21 @@ func (f *FilesService) shared(ctx context.Context) ([]share, error) {
 
 // SharedWith returns list of users the given file is shared with.
 func (f *FilesService) sharedWith(ctx context.Context, id int64) ([]share, error) {
+	// nolint:godox
 	// FIXME: shared-with returns different json structure than /shared/
 	// endpoint. so it's not an exported method until a common structure is
 	// decided
 	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/"+itoa(id)+"/shared-with", nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	var r struct {
 		Shared []share `json:"shared-with"`
 	}
-	_, err = f.client.Do(req, &r)
+	_, err = f.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return r.Shared, nil
@@ -327,16 +328,16 @@ func (f *FilesService) sharedWith(ctx context.Context, id int64) ([]share, error
 func (f *FilesService) Subtitles(ctx context.Context, id int64) ([]Subtitle, error) {
 	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/"+itoa(id)+"/subtitles", nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	var r struct {
 		Subtitles []Subtitle
 		Default   string
 	}
-	_, err = f.client.Do(req, &r)
+	_, err = f.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return r.Subtitles, nil
@@ -348,18 +349,22 @@ func (f *FilesService) Subtitles(ctx context.Context, id int64) ([]Subtitle, err
 // - A subtitle file that has identical parent folder and name with the video.
 // - Subtitle file extracted from video if the format is MKV.
 // - First match from OpenSubtitles.org.
-func (f *FilesService) DownloadSubtitle(ctx context.Context, id int64, key string, format string) (io.ReadCloser, error) {
+func (f *FilesService) DownloadSubtitle(
+	ctx context.Context,
+	id int64,
+	key string,
+) (io.ReadCloser, error) {
 	if key == "" {
 		key = "default"
 	}
 	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/"+itoa(id)+"/subtitles/"+key, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 
-	resp, err := f.client.Do(req, nil)
+	resp, err := f.client.Do(req, nil) // nolint:bodyclose
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return resp.Body, nil
@@ -369,17 +374,17 @@ func (f *FilesService) DownloadSubtitle(ctx context.Context, id int64, key strin
 // subtitleKey to get available subtitles for user’s preferred languages.
 func (f *FilesService) HLSPlaylist(ctx context.Context, id int64, subtitleKey string) (io.ReadCloser, error) {
 	if subtitleKey == "" {
-		return nil, fmt.Errorf("empty subtitle key is given")
+		return nil, ErrEmptySubtileKey
 	}
 
 	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/"+itoa(id)+"/hls/media.m3u8?subtitle_key"+subtitleKey, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 
-	resp, err := f.client.Do(req, nil)
+	resp, err := f.client.Do(req, nil) // nolint:bodyclose
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return resp.Body, nil
@@ -388,21 +393,26 @@ func (f *FilesService) HLSPlaylist(ctx context.Context, id int64, subtitleKey st
 // SetVideoPosition sets default video position for a video file.
 func (f *FilesService) SetVideoPosition(ctx context.Context, id int64, t int) error {
 	if t < 0 {
-		return fmt.Errorf("time cannot be negative")
+		return ErrNegativeTimeValue
 	}
 
 	params := url.Values{}
 	params.Set("time", strconv.Itoa(t))
 
-	req, err := f.client.NewRequest(ctx, "POST", "/v2/files/"+itoa(id)+"/start-from", strings.NewReader(params.Encode()))
+	req, err := f.client.NewRequest(
+		ctx,
+		"POST",
+		"/v2/files/"+itoa(id)+"/start-from",
+		strings.NewReader(params.Encode()),
+	)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w", err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	_, err = f.client.Do(req, &struct{}{})
+	_, err = f.client.Do(req, &struct{}{}) // nolint:bodyclose
 	if err != nil {
-		return err
+		return fmt.Errorf("%w", err)
 	}
 
 	return nil
@@ -416,9 +426,9 @@ func (f *FilesService) DeleteVideoPosition(ctx context.Context, id int64) error 
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	_, err = f.client.Do(req, &struct{}{})
+	_, err = f.client.Do(req, &struct{}{}) // nolint:bodyclose
 	if err != nil {
-		return err
+		return fmt.Errorf("%w", err)
 	}
 
 	return nil

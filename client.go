@@ -3,6 +3,7 @@ package putio
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"time"
 )
 
+// Constants.
 const (
 	DefaultClientTimeout = 30 * time.Second
 )
@@ -83,6 +85,7 @@ func NewClient(httpClient *http.Client) *Client {
 	return c
 }
 
+// ValidateToken validates user's OAuth Token.
 func (c *Client) ValidateToken(ctx context.Context) (userID *int64, err error) {
 	req, err := c.NewRequest(ctx, "GET", "/v2/oauth2/validate", nil)
 	if err != nil {
@@ -91,7 +94,7 @@ func (c *Client) ValidateToken(ctx context.Context) (userID *int64, err error) {
 	var r struct {
 		UserID *int64 `json:"user_id"`
 	}
-	_, err = c.Do(req, &r)
+	_, err = c.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +106,7 @@ func (c *Client) ValidateToken(ctx context.Context) (userID *int64, err error) {
 func (c *Client) NewRequest(ctx context.Context, method, relURL string, body io.Reader) (*http.Request, error) {
 	rel, err := url.Parse(relURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	// Workaround for upload endpoints. Upload server is different than API server.
@@ -121,7 +124,7 @@ func (c *Client) NewRequest(ctx context.Context, method, relURL string, body io.
 
 	req, err := http.NewRequestWithContext(ctx, method, u.String(), body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 	req.Header.Set("Accept", defaultMediaType)
 	req.Header.Set("User-Agent", c.UserAgent)
@@ -153,13 +156,13 @@ func (c *Client) Do(r *http.Request, v interface{}) (*http.Response, error) {
 
 	resp, err := c.client.Do(r)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	err = checkResponse(resp)
 	if err != nil {
 		// close the body at all times if there is an http error
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		return resp, err
 	}
 
@@ -168,11 +171,13 @@ func (c *Client) Do(r *http.Request, v interface{}) (*http.Response, error) {
 	}
 
 	// close the body for all cases from here
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {
-		return resp, err
+		return resp, fmt.Errorf("%w", err)
 	}
 
 	return resp, nil

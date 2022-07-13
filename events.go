@@ -7,6 +7,7 @@ type EventsService struct {
 	client *Client
 }
 
+// nolint:godox
 // FIXME: events list returns inconsistent data structures.
 
 // List gets list of dashboard events. It includes downloads and share events.
@@ -19,7 +20,7 @@ func (e *EventsService) List(ctx context.Context) ([]Event, error) {
 	var r struct {
 		Events []Event
 	}
-	_, err = e.client.Do(req, &r)
+	_, err = e.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +35,7 @@ func (e *EventsService) Delete(ctx context.Context) error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	_, err = e.client.Do(req, &struct{}{})
+	_, err = e.client.Do(req, &struct{}{}) // nolint:bodyclose
 	if err != nil {
 		return err
 	}

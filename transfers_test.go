@@ -2,6 +2,7 @@ package putio
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -217,7 +218,12 @@ func TestTransfers_Add(t *testing.T) {
 		fmt.Fprintln(w, fixture)
 	})
 
-	transfer, err := client.Transfers.Add(context.Background(), "http://releases.ubuntu.com/16.04/ubuntu-16.04-desktop-amd64.iso.torrent", 0, "")
+	transfer, err := client.Transfers.Add(
+		context.Background(),
+		"http://releases.ubuntu.com/16.04/ubuntu-16.04-desktop-amd64.iso.torrent",
+		0,
+		"",
+	)
 	if err != nil {
 		t.Error(err)
 	}
@@ -319,7 +325,8 @@ func TestTransfers_Retry(t *testing.T) {
 	if err == nil {
 		t.Fatal("must not return nil")
 	}
-	if err, ok := err.(*ErrorResponse); ok && err.Response.StatusCode != 404 {
+	var myErr *ErrorResponse
+	if errors.As(err, &myErr) && myErr.Response.StatusCode != 404 {
 		t.Errorf("error: %s, excepted: 404", err)
 	}
 }
@@ -376,7 +383,8 @@ func TestTransfers_Cancel(t *testing.T) {
 	if err == nil {
 		t.Fatal("must not return nil")
 	}
-	if err, ok := err.(*ErrorResponse); ok && err.Response.StatusCode != 404 {
+	var myErr *ErrorResponse
+	if errors.As(err, &myErr) && myErr.Response.StatusCode != 404 {
 		t.Errorf("error: %s, excepted: 404", err)
 	}
 }

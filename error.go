@@ -1,8 +1,25 @@
 package putio
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+)
+
+// Sentinel errors.
+var (
+	ErrEmptyFolderName          = errors.New("empty folder name")
+	ErrNoFileIDIsGiven          = errors.New("no file id is given")
+	ErrFilenameCanNotBeEmpty    = errors.New("filename cannot be empty")
+	ErrNewFilenameCanNotBeEmpty = errors.New("new filename cannot be empty")
+	ErrInvalidPageNumber        = errors.New("invalid page number")
+	ErrNoQueryGiven             = errors.New("no query given")
+	ErrEmptySubtileKey          = errors.New("empty subtitle key is given")
+	ErrNegativeTimeValue        = errors.New("time cannot be negative")
+	ErrNoFileIsGiven            = errors.New("no files given")
+	ErrEmptyUserName            = errors.New("empty username")
+	ErrEmptyURL                 = errors.New("empty URL")
+	ErrUnexpected               = errors.New("unexpected error")
 )
 
 // ErrorResponse reports the error caused by an API request.
@@ -21,10 +38,15 @@ type ErrorResponse struct {
 	Type    string `json:"error_type"`
 }
 
+// nolint:goerr113
 func (e *ErrorResponse) Error() string {
 	if e.ParseError != nil {
-		return fmt.Errorf("cannot parse response. code:%d error:%q body:%q",
-			e.Response.StatusCode, e.ParseError.Error(), string(e.Body[:250])).Error()
+		return fmt.Errorf(
+			"cannot parse response. code:%d error:%w body:%q",
+			e.Response.StatusCode,
+			e.ParseError,
+			string(e.Body[:250]),
+		).Error()
 	}
 	return fmt.Sprintf(
 		"putio error. code:%d type:%q message:%q request:%v %v",

@@ -2,7 +2,6 @@ package putio
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"strings"
 )
@@ -24,7 +23,7 @@ func (t *TransfersService) List(ctx context.Context) ([]Transfer, error) {
 	var r struct {
 		Transfers []Transfer
 	}
-	_, err = t.client.Do(req, &r)
+	_, err = t.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +37,7 @@ func (t *TransfersService) List(ctx context.Context) ([]Transfer, error) {
 // used to send a POST request after the transfer is finished downloading.
 func (t *TransfersService) Add(ctx context.Context, urlStr string, parent int64, callbackURL string) (Transfer, error) {
 	if urlStr == "" {
-		return Transfer{}, fmt.Errorf("empty URL")
+		return Transfer{}, ErrEmptyURL
 	}
 
 	params := url.Values{}
@@ -61,7 +60,7 @@ func (t *TransfersService) Add(ctx context.Context, urlStr string, parent int64,
 	var r struct {
 		Transfer Transfer
 	}
-	_, err = t.client.Do(req, &r)
+	_, err = t.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return Transfer{}, err
 	}
@@ -79,7 +78,7 @@ func (t *TransfersService) Get(ctx context.Context, id int64) (Transfer, error) 
 	var r struct {
 		Transfer Transfer
 	}
-	_, err = t.client.Do(req, &r)
+	_, err = t.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return Transfer{}, err
 	}
@@ -101,7 +100,7 @@ func (t *TransfersService) Retry(ctx context.Context, id int64) (Transfer, error
 	var r struct {
 		Transfer Transfer
 	}
-	_, err = t.client.Do(req, &r)
+	_, err = t.client.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return Transfer{}, err
 	}
@@ -112,10 +111,10 @@ func (t *TransfersService) Retry(ctx context.Context, id int64) (Transfer, error
 // Cancel deletes given transfers.
 func (t *TransfersService) Cancel(ctx context.Context, ids ...int64) error {
 	if len(ids) == 0 {
-		return fmt.Errorf("no id given")
+		return ErrNoFileIDIsGiven
 	}
 
-	var transfers []string
+	transfers := []string{}
 	for _, id := range ids {
 		transfers = append(transfers, itoa(id))
 	}
@@ -129,7 +128,7 @@ func (t *TransfersService) Cancel(ctx context.Context, ids ...int64) error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	_, err = t.client.Do(req, &struct{}{})
+	_, err = t.client.Do(req, &struct{}{}) // nolint:bodyclose
 	if err != nil {
 		return err
 	}
@@ -145,7 +144,7 @@ func (t *TransfersService) Clean(ctx context.Context) error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	_, err = t.client.Do(req, &struct{}{})
+	_, err = t.client.Do(req, &struct{}{}) // nolint:bodyclose
 	if err != nil {
 		return err
 	}
