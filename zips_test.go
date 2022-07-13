@@ -20,7 +20,7 @@ func TestZips_Get(t *testing.T) {
 }
 `
 	mux.HandleFunc("/v2/zips/1", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 
@@ -50,7 +50,7 @@ func TestZips_List(t *testing.T) {
 }
 `
 	mux.HandleFunc("/v2/zips/list", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 
@@ -79,7 +79,7 @@ func TestZips_Create(t *testing.T) {
 }
 `
 	mux.HandleFunc("/v2/zips/create", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 		fmt.Fprintln(w, fixture)
 	})

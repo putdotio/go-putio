@@ -1,6 +1,9 @@
 package putio
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
 
 // EventsService is the service to gather information about user's events.
 type EventsService struct {
@@ -12,7 +15,7 @@ type EventsService struct {
 
 // List gets list of dashboard events. It includes downloads and share events.
 func (e *EventsService) List(ctx context.Context) ([]Event, error) {
-	req, err := e.client.NewRequest(ctx, "GET", "/v2/events/list", nil)
+	req, err := e.client.NewRequest(ctx, http.MethodGet, "/v2/events/list", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +32,7 @@ func (e *EventsService) List(ctx context.Context) ([]Event, error) {
 
 // Delete Clears all all dashboard events.
 func (e *EventsService) Delete(ctx context.Context) error {
-	req, err := e.client.NewRequest(ctx, "POST", "/v2/events/delete", nil)
+	req, err := e.client.NewRequest(ctx, http.MethodPost, "/v2/events/delete", nil)
 	if err != nil {
 		return err
 	}

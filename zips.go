@@ -2,6 +2,7 @@ package putio
 
 import (
 	"context"
+	"net/http"
 	"net/url"
 	"strings"
 )
@@ -13,7 +14,7 @@ type ZipsService struct {
 
 // Get gives detailed information about the given zip file id.
 func (z *ZipsService) Get(ctx context.Context, id int64) (Zip, error) {
-	req, err := z.client.NewRequest(ctx, "GET", "/v2/zips/"+itoa(id), nil)
+	req, err := z.client.NewRequest(ctx, http.MethodGet, "/v2/zips/"+itoa(id), nil)
 	if err != nil {
 		return Zip{}, err
 	}
@@ -29,7 +30,7 @@ func (z *ZipsService) Get(ctx context.Context, id int64) (Zip, error) {
 
 // List lists active zip files.
 func (z *ZipsService) List(ctx context.Context) ([]Zip, error) {
-	req, err := z.client.NewRequest(ctx, "GET", "/v2/zips/list", nil)
+	req, err := z.client.NewRequest(ctx, http.MethodGet, "/v2/zips/list", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +61,7 @@ func (z *ZipsService) Create(ctx context.Context, fileIDs ...int64) (int64, erro
 	params := url.Values{}
 	params.Set("file_ids", strings.Join(ids, ","))
 
-	req, err := z.client.NewRequest(ctx, "POST", "/v2/zips/create", strings.NewReader(params.Encode()))
+	req, err := z.client.NewRequest(ctx, http.MethodPost, "/v2/zips/create", strings.NewReader(params.Encode()))
 	if err != nil {
 		return 0, err
 	}

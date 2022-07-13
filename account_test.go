@@ -58,7 +58,7 @@ func TestAccount_Info(t *testing.T) {
 }
 `
 	mux.HandleFunc("/v2/account/info", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 
@@ -106,7 +106,7 @@ func TestAccount_Settings(t *testing.T) {
 }
 `
 	mux.HandleFunc("/v2/account/settings", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 

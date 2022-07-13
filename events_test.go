@@ -35,7 +35,7 @@ func TestEvents_List(t *testing.T) {
 }
 `
 	mux.HandleFunc("/v2/events/list", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 
@@ -58,7 +58,7 @@ func TestEvents_Delete(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/v2/events/delete", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 		fmt.Fprintln(w, `{"status":"OK"}`)
 	})

@@ -39,7 +39,7 @@ func TestFiles_Get(t *testing.T) {
 `
 
 	mux.HandleFunc("/v2/files/1", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 	mux.HandleFunc("/v2/files/2", http.NotFound)
@@ -64,8 +64,8 @@ func TestFiles_Get(t *testing.T) {
 	}
 
 	var myErr *ErrorResponse
-	if errors.As(err, &myErr) && myErr.Response.StatusCode != 404 {
-		t.Errorf("error: %s, excepted: 404", err)
+	if errors.As(err, &myErr) && myErr.Response.StatusCode != http.StatusNotFound {
+		t.Errorf("error: %s, excepted: %d", err, http.StatusNotFound)
 	}
 }
 
@@ -129,7 +129,7 @@ func TestFiles_List(t *testing.T) {
 }
 `
 	mux.HandleFunc("/v2/files/list", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 
 		// not found handler
 		parentID := r.URL.Query().Get("parent_id")
@@ -160,8 +160,8 @@ func TestFiles_List(t *testing.T) {
 	}
 
 	var myErr *ErrorResponse
-	if errors.As(err, &myErr) && myErr.Response.StatusCode != 404 {
-		t.Errorf("error: %s, excepted: 404", err)
+	if errors.As(err, &myErr) && myErr.Response.StatusCode != http.StatusNotFound {
+		t.Errorf("error: %s, excepted: %d", err, http.StatusNotFound)
 	}
 }
 
@@ -195,7 +195,7 @@ func TestFiles_CreateFolder(t *testing.T) {
 }
 `
 	mux.HandleFunc("/v2/files/create-folder", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 		fmt.Fprintln(w, fixture)
 	})
@@ -221,7 +221,7 @@ func TestFiles_Delete(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/v2/files/delete", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 		fmt.Fprintln(w, `{"status": "OK"}`)
 	})
@@ -243,7 +243,7 @@ func TestFiles_Rename(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/v2/files/rename", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 		fmt.Fprintln(w, `{"status":"OK"}`)
 	})
@@ -265,7 +265,7 @@ func TestFiles_Move(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/v2/files/move", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 		fmt.Fprintln(w, `{"status":"OK"}`)
 	})
@@ -358,7 +358,7 @@ func TestFiles_Search(t *testing.T) {
 }
 `
 	mux.HandleFunc("/v2/files/search/", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 
@@ -393,7 +393,7 @@ func TestFiles_SetVideoPosition(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/v2/files/1/start-from", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 		fmt.Fprintln(w, `{"statutus":"OK"}`)
 	})
@@ -415,7 +415,7 @@ func TestFiles_DeleteVideoPosition(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/v2/files/1/start-from/delete", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 		fmt.Fprintln(w, `{"statutus":"OK"}`)
 	})
@@ -456,7 +456,7 @@ http://qthttp.apple.com.edgesuite.net/1010qwoeiuryfg/2540_vod.m3u8
 http://qthttp.apple.com.edgesuite.net/1010qwoeiuryfg/3340_vod.m3u8
 `
 	mux.HandleFunc("/v2/files/1/hls/media.m3u8", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		http.ServeContent(w, r, "media.m3u8", time.Now().UTC(), strings.NewReader(sampleHLS))
 	})
 
@@ -512,7 +512,7 @@ func TestFiles_Shared(t *testing.T) {
 }
 `
 	mux.HandleFunc("/v2/files/shared", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 
@@ -552,7 +552,7 @@ func TestFiles_SharedWith(t *testing.T) {
 `
 
 	mux.HandleFunc("/v2/files/1/shared-with", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 
@@ -592,7 +592,7 @@ func TestFiles_Subtitles(t *testing.T) {
 }
 `
 	mux.HandleFunc("/v2/files/1/subtitles", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 
@@ -631,7 +631,7 @@ Let's go down.
 - Three out, eight left.
 `
 	mux.HandleFunc("/v2/files/1/subtitles/", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		// trim leading and trailing slashes and split the url path
 		f := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 

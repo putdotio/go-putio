@@ -2,6 +2,7 @@ package putio
 
 import (
 	"context"
+	"net/http"
 	"net/url"
 	"strings"
 )
@@ -15,7 +16,7 @@ type TransfersService struct {
 // List lists all active transfers. If a transfer is completed, it will not be
 // available in response.
 func (t *TransfersService) List(ctx context.Context) ([]Transfer, error) {
-	req, err := t.client.NewRequest(ctx, "GET", "/v2/transfers/list", nil)
+	req, err := t.client.NewRequest(ctx, http.MethodGet, "/v2/transfers/list", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func (t *TransfersService) Add(ctx context.Context, urlStr string, parent int64,
 		params.Set("callback_url", callbackURL)
 	}
 
-	req, err := t.client.NewRequest(ctx, "POST", "/v2/transfers/add", strings.NewReader(params.Encode()))
+	req, err := t.client.NewRequest(ctx, http.MethodPost, "/v2/transfers/add", strings.NewReader(params.Encode()))
 	if err != nil {
 		return Transfer{}, err
 	}
@@ -70,7 +71,7 @@ func (t *TransfersService) Add(ctx context.Context, urlStr string, parent int64,
 
 // Get returns the given transfer's properties.
 func (t *TransfersService) Get(ctx context.Context, id int64) (Transfer, error) {
-	req, err := t.client.NewRequest(ctx, "GET", "/v2/transfers/"+itoa(id), nil)
+	req, err := t.client.NewRequest(ctx, http.MethodGet, "/v2/transfers/"+itoa(id), nil)
 	if err != nil {
 		return Transfer{}, err
 	}
@@ -91,7 +92,7 @@ func (t *TransfersService) Retry(ctx context.Context, id int64) (Transfer, error
 	params := url.Values{}
 	params.Set("id", itoa(id))
 
-	req, err := t.client.NewRequest(ctx, "POST", "/v2/transfers/retry", strings.NewReader(params.Encode()))
+	req, err := t.client.NewRequest(ctx, http.MethodPost, "/v2/transfers/retry", strings.NewReader(params.Encode()))
 	if err != nil {
 		return Transfer{}, err
 	}
@@ -122,7 +123,7 @@ func (t *TransfersService) Cancel(ctx context.Context, ids ...int64) error {
 	params := url.Values{}
 	params.Set("transfer_ids", strings.Join(transfers, ","))
 
-	req, err := t.client.NewRequest(ctx, "POST", "/v2/transfers/cancel", strings.NewReader(params.Encode()))
+	req, err := t.client.NewRequest(ctx, http.MethodPost, "/v2/transfers/cancel", strings.NewReader(params.Encode()))
 	if err != nil {
 		return err
 	}
@@ -138,7 +139,7 @@ func (t *TransfersService) Cancel(ctx context.Context, ids ...int64) error {
 
 // Clean removes completed transfers from the transfer list.
 func (t *TransfersService) Clean(ctx context.Context) error {
-	req, err := t.client.NewRequest(ctx, "POST", "/v2/transfers/clean", nil)
+	req, err := t.client.NewRequest(ctx, http.MethodPost, "/v2/transfers/clean", nil)
 	if err != nil {
 		return err
 	}

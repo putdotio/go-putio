@@ -46,7 +46,7 @@ func TestFriends_List(t *testing.T) {
 `
 
 	mux.HandleFunc("/v2/friends/list", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 
@@ -91,7 +91,7 @@ func TestFriends_WaitingRequests(t *testing.T) {
 `
 
 	mux.HandleFunc("/v2/friends/waiting-requests", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 
@@ -118,7 +118,7 @@ func TestFriends_Request(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/v2/friends/annie/request", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 		fmt.Fprintln(w, `{"status":"OK"}`)
 	})
@@ -140,7 +140,7 @@ func TestFriends_Approve(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/v2/friends/bob/approve", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 		fmt.Fprintln(w, `{"status":"OK"}`)
 	})
@@ -162,7 +162,7 @@ func TestFriends_Deny(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/v2/friends/andy/deny", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 		fmt.Fprintln(w, `{"status":"OK"}`)
 	})
@@ -184,7 +184,7 @@ func TestFriends_Unfriend(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/v2/friends/lin/unfriend", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 		fmt.Fprintln(w, `{"status":"OK"}`)
 	})

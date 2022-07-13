@@ -57,7 +57,7 @@ func TestTransfers_Get(t *testing.T) {
 	}
 	`
 	mux.HandleFunc("/v2/transfers/1", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 
@@ -139,7 +139,7 @@ func TestTransfers_List(t *testing.T) {
 	`
 
 	mux.HandleFunc("/v2/transfers/list", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
+		testMethod(t, r, http.MethodGet)
 		fmt.Fprintln(w, fixture)
 	})
 
@@ -205,7 +205,7 @@ func TestTransfers_Add(t *testing.T) {
 }
 `
 	mux.HandleFunc("/v2/transfers/add", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 
 		// form values
@@ -299,7 +299,7 @@ func TestTransfers_Retry(t *testing.T) {
 }
 `
 	mux.HandleFunc("/v2/transfers/retry", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 
 		id := r.FormValue("id")
@@ -326,8 +326,8 @@ func TestTransfers_Retry(t *testing.T) {
 		t.Fatal("must not return nil")
 	}
 	var myErr *ErrorResponse
-	if errors.As(err, &myErr) && myErr.Response.StatusCode != 404 {
-		t.Errorf("error: %s, excepted: 404", err)
+	if errors.As(err, &myErr) && myErr.Response.StatusCode != http.StatusNotFound {
+		t.Errorf("error: %s, excepted: %d", err, http.StatusNotFound)
 	}
 }
 
@@ -345,7 +345,7 @@ func TestTransfers_Cancel(t *testing.T) {
 	}
 
 	mux.HandleFunc("/v2/transfers/cancel", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 
 		transferIdsStr := r.FormValue("transfer_ids")
@@ -384,8 +384,8 @@ func TestTransfers_Cancel(t *testing.T) {
 		t.Fatal("must not return nil")
 	}
 	var myErr *ErrorResponse
-	if errors.As(err, &myErr) && myErr.Response.StatusCode != 404 {
-		t.Errorf("error: %s, excepted: 404", err)
+	if errors.As(err, &myErr) && myErr.Response.StatusCode != http.StatusNotFound {
+		t.Errorf("error: %s, excepted: %d", err, http.StatusNotFound)
 	}
 }
 
@@ -394,7 +394,7 @@ func TestTransfers_Clean(t *testing.T) {
 	defer teardown()
 
 	mux.HandleFunc("/v2/transfers/clean", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
+		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
 		fmt.Fprintln(w, `{"status":"OK"}`)
 	})

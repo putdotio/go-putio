@@ -48,7 +48,7 @@ func TestNewClient(t *testing.T) {
 
 func TestNewRequest_badURL(t *testing.T) {
 	cl := NewClient(nil)
-	_, err := cl.NewRequest(context.Background(), "GET", ":", nil)
+	_, err := cl.NewRequest(context.Background(), http.MethodGet, ":", nil)
 	if err == nil {
 		t.Errorf("bad URL accepted")
 	}
@@ -59,7 +59,7 @@ func TestNewRequest_customUserAgent(t *testing.T) {
 	cl := NewClient(nil)
 	cl.UserAgent = userAgent
 
-	req, _ := cl.NewRequest(context.Background(), "GET", "/test", nil)
+	req, _ := cl.NewRequest(context.Background(), http.MethodGet, "/test", nil)
 	if got := req.Header.Get("User-Agent"); got != userAgent {
 		t.Errorf("got: %v, want: %v", got, userAgent)
 	}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -20,7 +21,7 @@ type FilesService struct {
 
 // Get fetches file metadata for given file ID.
 func (f *FilesService) Get(ctx context.Context, id int64) (File, error) {
-	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/"+itoa(id), nil)
+	req, err := f.client.NewRequest(ctx, http.MethodGet, "/v2/files/"+itoa(id), nil)
 	if err != nil {
 		return File{}, err
 	}
@@ -37,7 +38,7 @@ func (f *FilesService) Get(ctx context.Context, id int64) (File, error) {
 
 // List fetches children for given directory ID.
 func (f *FilesService) List(ctx context.Context, id int64) (children []File, parent File, err error) {
-	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/list?parent_id="+itoa(id)+"&per_page=1000", nil)
+	req, err := f.client.NewRequest(ctx, http.MethodGet, "/v2/files/list?parent_id="+itoa(id)+"&per_page=1000", nil)
 	if err != nil {
 		return
 	}
@@ -54,7 +55,7 @@ func (f *FilesService) List(ctx context.Context, id int64) (children []File, par
 	parent = r.Parent
 	for r.Cursor != "" {
 		body := strings.NewReader(`{"cursor": "` + r.Cursor + `"}`)
-		req, err = f.client.NewRequest(ctx, "POST", "/v2/files/list/continue", body)
+		req, err = f.client.NewRequest(ctx, http.MethodPost, "/v2/files/list/continue", body)
 		if err != nil {
 			return
 		}
@@ -77,7 +78,7 @@ func (f *FilesService) URL(ctx context.Context, id int64, useTunnel bool) (strin
 		notunnel = "notunnel=0"
 	}
 
-	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/"+itoa(id)+"/url?"+notunnel, nil)
+	req, err := f.client.NewRequest(ctx, http.MethodGet, "/v2/files/"+itoa(id)+"/url?"+notunnel, nil)
 	if err != nil {
 		return "", err
 	}
@@ -104,7 +105,7 @@ func (f *FilesService) CreateFolder(ctx context.Context, name string, parent int
 	params.Set("name", name)
 	params.Set("parent_id", itoa(parent))
 
-	req, err := f.client.NewRequest(ctx, "POST", "/v2/files/create-folder", strings.NewReader(params.Encode()))
+	req, err := f.client.NewRequest(ctx, http.MethodPost, "/v2/files/create-folder", strings.NewReader(params.Encode()))
 	if err != nil {
 		return File{}, err
 	}
@@ -135,7 +136,7 @@ func (f *FilesService) Delete(ctx context.Context, files ...int64) error {
 	params := url.Values{}
 	params.Set("file_ids", strings.Join(ids, ","))
 
-	req, err := f.client.NewRequest(ctx, "POST", "/v2/files/delete", strings.NewReader(params.Encode()))
+	req, err := f.client.NewRequest(ctx, http.MethodPost, "/v2/files/delete", strings.NewReader(params.Encode()))
 	if err != nil {
 		return err
 	}
@@ -158,7 +159,7 @@ func (f *FilesService) Rename(ctx context.Context, id int64, newname string) err
 	params.Set("file_id", itoa(id))
 	params.Set("name", newname)
 
-	req, err := f.client.NewRequest(ctx, "POST", "/v2/files/rename", strings.NewReader(params.Encode()))
+	req, err := f.client.NewRequest(ctx, http.MethodPost, "/v2/files/rename", strings.NewReader(params.Encode()))
 	if err != nil {
 		return err
 	}
@@ -187,7 +188,7 @@ func (f *FilesService) Move(ctx context.Context, parent int64, files ...int64) e
 	params.Set("file_ids", strings.Join(ids, ","))
 	params.Set("parent_id", itoa(parent))
 
-	req, err := f.client.NewRequest(ctx, "POST", "/v2/files/move", strings.NewReader(params.Encode()))
+	req, err := f.client.NewRequest(ctx, http.MethodPost, "/v2/files/move", strings.NewReader(params.Encode()))
 	if err != nil {
 		return err
 	}
@@ -242,7 +243,7 @@ func (f *FilesService) Upload(ctx context.Context, r io.Reader, filename string,
 		return Upload{}, fmt.Errorf("%w", err)
 	}
 
-	req, err := f.client.NewRequest(ctx, "POST", "$upload$", &buf)
+	req, err := f.client.NewRequest(ctx, http.MethodPost, "$upload$", &buf)
 	if err != nil {
 		return Upload{}, fmt.Errorf("%w", err)
 	}
@@ -269,7 +270,7 @@ func (f *FilesService) Search(ctx context.Context, query string, page int64) (Se
 		return Search{}, ErrNoQueryGiven
 	}
 
-	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/search/"+query+"/page/"+itoa(page), nil)
+	req, err := f.client.NewRequest(ctx, http.MethodGet, "/v2/files/search/"+query+"/page/"+itoa(page), nil)
 	if err != nil {
 		return Search{}, fmt.Errorf("%w", err)
 	}
@@ -285,7 +286,7 @@ func (f *FilesService) Search(ctx context.Context, query string, page int64) (Se
 
 // Shared returns list of shared files and share information.
 func (f *FilesService) shared(ctx context.Context) ([]share, error) {
-	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/shared", nil)
+	req, err := f.client.NewRequest(ctx, http.MethodGet, "/v2/files/shared", nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
@@ -307,7 +308,7 @@ func (f *FilesService) sharedWith(ctx context.Context, id int64) ([]share, error
 	// FIXME: shared-with returns different json structure than /shared/
 	// endpoint. so it's not an exported method until a common structure is
 	// decided
-	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/"+itoa(id)+"/shared-with", nil)
+	req, err := f.client.NewRequest(ctx, http.MethodGet, "/v2/files/"+itoa(id)+"/shared-with", nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
@@ -326,7 +327,7 @@ func (f *FilesService) sharedWith(ctx context.Context, id int64) ([]share, error
 // Subtitles lists available subtitles for the given file for user's preferred
 // subtitle language.
 func (f *FilesService) Subtitles(ctx context.Context, id int64) ([]Subtitle, error) {
-	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/"+itoa(id)+"/subtitles", nil)
+	req, err := f.client.NewRequest(ctx, http.MethodGet, "/v2/files/"+itoa(id)+"/subtitles", nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
@@ -357,7 +358,7 @@ func (f *FilesService) DownloadSubtitle(
 	if key == "" {
 		key = "default"
 	}
-	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/"+itoa(id)+"/subtitles/"+key, nil)
+	req, err := f.client.NewRequest(ctx, http.MethodGet, "/v2/files/"+itoa(id)+"/subtitles/"+key, nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
@@ -377,7 +378,12 @@ func (f *FilesService) HLSPlaylist(ctx context.Context, id int64, subtitleKey st
 		return nil, ErrEmptySubtileKey
 	}
 
-	req, err := f.client.NewRequest(ctx, "GET", "/v2/files/"+itoa(id)+"/hls/media.m3u8?subtitle_key"+subtitleKey, nil)
+	req, err := f.client.NewRequest(
+		ctx,
+		http.MethodGet,
+		"/v2/files/"+itoa(id)+"/hls/media.m3u8?subtitle_key"+subtitleKey,
+		nil,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
@@ -401,7 +407,7 @@ func (f *FilesService) SetVideoPosition(ctx context.Context, id int64, t int) er
 
 	req, err := f.client.NewRequest(
 		ctx,
-		"POST",
+		http.MethodPost,
 		"/v2/files/"+itoa(id)+"/start-from",
 		strings.NewReader(params.Encode()),
 	)
@@ -420,7 +426,7 @@ func (f *FilesService) SetVideoPosition(ctx context.Context, id int64, t int) er
 
 // DeleteVideoPosition deletes video position for a video file.
 func (f *FilesService) DeleteVideoPosition(ctx context.Context, id int64) error {
-	req, err := f.client.NewRequest(ctx, "POST", "/v2/files/"+itoa(id)+"/start-from/delete", nil)
+	req, err := f.client.NewRequest(ctx, http.MethodPost, "/v2/files/"+itoa(id)+"/start-from/delete", nil)
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package putio
 
 import (
 	"context"
+	"net/http"
 )
 
 // FriendsService is the service to operate on user friends.
@@ -11,7 +12,7 @@ type FriendsService struct {
 
 // List lists users friends.
 func (f *FriendsService) List(ctx context.Context) ([]Friend, error) {
-	req, err := f.client.NewRequest(ctx, "GET", "/v2/friends/list", nil)
+	req, err := f.client.NewRequest(ctx, http.MethodGet, "/v2/friends/list", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +31,7 @@ func (f *FriendsService) List(ctx context.Context) ([]Friend, error) {
 
 // WaitingRequests lists user's pending friend requests.
 func (f *FriendsService) WaitingRequests(ctx context.Context) ([]Friend, error) {
-	req, err := f.client.NewRequest(ctx, "GET", "/v2/friends/waiting-requests", nil)
+	req, err := f.client.NewRequest(ctx, http.MethodGet, "/v2/friends/waiting-requests", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func (f *FriendsService) Request(ctx context.Context, username string) error {
 	if username == "" {
 		return ErrEmptyUserName
 	}
-	req, err := f.client.NewRequest(ctx, "POST", "/v2/friends/"+username+"/request", nil)
+	req, err := f.client.NewRequest(ctx, http.MethodPost, "/v2/friends/"+username+"/request", nil)
 	if err != nil {
 		return err
 	}
@@ -71,7 +72,7 @@ func (f *FriendsService) Approve(ctx context.Context, username string) error {
 		return ErrEmptyUserName
 	}
 
-	req, err := f.client.NewRequest(ctx, "POST", "/v2/friends/"+username+"/approve", nil)
+	req, err := f.client.NewRequest(ctx, http.MethodPost, "/v2/friends/"+username+"/approve", nil)
 	if err != nil {
 		return err
 	}
@@ -90,7 +91,7 @@ func (f *FriendsService) Deny(ctx context.Context, username string) error {
 		return ErrEmptyUserName
 	}
 
-	req, err := f.client.NewRequest(ctx, "POST", "/v2/friends/"+username+"/deny", nil)
+	req, err := f.client.NewRequest(ctx, http.MethodPost, "/v2/friends/"+username+"/deny", nil)
 	if err != nil {
 		return err
 	}
@@ -109,7 +110,7 @@ func (f *FriendsService) Unfriend(ctx context.Context, username string) error {
 		return ErrEmptyUserName
 	}
 
-	req, err := f.client.NewRequest(ctx, "POST", "/v2/friends/"+username+"/unfriend", nil)
+	req, err := f.client.NewRequest(ctx, http.MethodPost, "/v2/friends/"+username+"/unfriend", nil)
 	if err != nil {
 		return err
 	}

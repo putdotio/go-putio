@@ -87,7 +87,7 @@ func NewClient(httpClient *http.Client) *Client {
 
 // ValidateToken validates user's OAuth Token.
 func (c *Client) ValidateToken(ctx context.Context) (userID *int64, err error) {
-	req, err := c.NewRequest(ctx, "GET", "/v2/oauth2/validate", nil)
+	req, err := c.NewRequest(ctx, http.MethodGet, "/v2/oauth2/validate", nil)
 	if err != nil {
 		return
 	}
