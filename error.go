@@ -14,7 +14,7 @@ var (
 	ErrNewFilenameCanNotBeEmpty = errors.New("new filename cannot be empty")
 	ErrInvalidPageNumber        = errors.New("invalid page number")
 	ErrNoQueryGiven             = errors.New("no query given")
-	ErrEmptySubtileKey          = errors.New("empty subtitle key is given")
+	ErrEmptySubtitleKey         = errors.New("empty subtitle key is given")
 	ErrNegativeTimeValue        = errors.New("time cannot be negative")
 	ErrNoFileIsGiven            = errors.New("no files given")
 	ErrEmptyUserName            = errors.New("empty username")

@@ -375,7 +375,7 @@ func (f *FilesService) DownloadSubtitle(
 // subtitleKey to get available subtitles for user’s preferred languages.
 func (f *FilesService) HLSPlaylist(ctx context.Context, id int64, subtitleKey string) (io.ReadCloser, error) {
 	if subtitleKey == "" {
-		return nil, ErrEmptySubtileKey
+		return nil, ErrEmptySubtitleKey
 	}
 
 	req, err := f.client.NewRequest(
