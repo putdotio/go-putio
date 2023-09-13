@@ -64,3 +64,33 @@ func TestNewRequest_customUserAgent(t *testing.T) {
 		t.Errorf("got: %v, want: %v", got, userAgent)
 	}
 }
+
+func TestNewRequest_resolveAbsoluteUrl(t *testing.T) {
+	cl := NewClient(nil)
+	fullUrl := "https://api.put.io/v2/files/list/continue"
+
+	req, _ := cl.NewRequest(context.Background(), http.MethodGet, "/v2/files/list/continue", nil)
+	if got := req.URL.String(); got != fullUrl {
+		t.Errorf("got: %v, want: %v", got, fullUrl)
+	}
+}
+
+func TestNewRequest_overrideBaseUrl(t *testing.T) {
+	cl := NewClient(nil)
+	fullUrl := "https://upload.put.io/v2/files/upload"
+
+	req, _ := cl.NewRequest(context.Background(), http.MethodGet, "/v2/files/upload", nil)
+	if got := req.URL.String(); got != fullUrl {
+		t.Errorf("got: %v, want: %v", got, fullUrl)
+	}
+}
+
+func TestNewRequest_overrideWithAbsoluteUrl(t *testing.T) {
+	cl := NewClient(nil)
+	fullUrl := "https://my-custom-url.com/endpoint?query=param"
+
+	req, _ := cl.NewRequest(context.Background(), http.MethodGet, "https://my-custom-url.com/endpoint?query=param", nil)
+	if got := req.URL.String(); got != fullUrl {
+		t.Errorf("got: %v, want: %v", got, fullUrl)
+	}
+}

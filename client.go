@@ -18,11 +18,11 @@ const (
 )
 
 const (
-	defaultUserAgent = "go-putio"
-	defaultMediaType = "application/json"
-	defaultBaseURL   = "https://api.put.io"
-	defaultUploadURL = "https://upload.put.io"
-	defaultTusURL    = "https://upload.put.io/files/"
+	defaultUserAgent  = "go-putio"
+	defaultMediaType  = "application/json"
+	defaultBaseURL    = "https://api.put.io"
+	defaultUploadHost = "upload.put.io"
+	defaultTusURL     = "https://upload.put.io/files/"
 )
 
 // Client manages communication with Put.io v2 API.
@@ -109,17 +109,16 @@ func (c *Client) NewRequest(ctx context.Context, method, relURL string, body io.
 		return nil, fmt.Errorf("%w", err)
 	}
 
+	u := c.BaseURL.ResolveReference(rel)
+
 	// Workaround for upload endpoints. Upload server is different than API server.
-	var u *url.URL
 	switch {
-	case relURL == "$upload$":
-		u, _ = url.Parse(defaultUploadURL)
+	case relURL == "/v2/files/upload":
+		u.Host = defaultUploadHost
 	case relURL == "$upload-tus$":
 		u, _ = url.Parse(defaultTusURL)
 	case strings.HasPrefix(relURL, "http://") || strings.HasPrefix(relURL, "https://"):
 		u = rel
-	default:
-		u = c.BaseURL.ResolveReference(rel)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, method, u.String(), body)

@@ -243,7 +243,7 @@ func (f *FilesService) Upload(ctx context.Context, r io.Reader, filename string,
 		return Upload{}, fmt.Errorf("%w", err)
 	}
 
-	req, err := f.client.NewRequest(ctx, http.MethodPost, "$upload$", &buf)
+	req, err := f.client.NewRequest(ctx, http.MethodPost, "/v2/files/upload", &buf)
 	if err != nil {
 		return Upload{}, fmt.Errorf("%w", err)
 	}
