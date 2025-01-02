@@ -69,7 +69,10 @@ func (f *ConfigService) SetAll(ctx context.Context, config interface{}) error {
 	}
 	req.Header.Set("content-type", "application/json")
 	_, err = f.client.Do(req, nil) // nolint:bodyclose
-	return fmt.Errorf("%w", err)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	return nil
 }
 
 // Set updates given config key's value.
@@ -93,7 +96,11 @@ func (f *ConfigService) Set(ctx context.Context, key string, value interface{}) 
 	}
 	req.Header.Set("content-type", "application/json")
 	_, err = f.client.Do(req, nil) // nolint:bodyclose
-	return fmt.Errorf("%w", err)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	return nil
+
 }
 
 // Del destroys config item via given key.
@@ -103,5 +110,8 @@ func (f *ConfigService) Del(ctx context.Context, key string) error {
 		return fmt.Errorf("%w", err)
 	}
 	_, err = f.client.Do(req, nil) // nolint:bodyclose
-	return fmt.Errorf("%w", err)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	return nil
 }
