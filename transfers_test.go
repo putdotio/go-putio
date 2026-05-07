@@ -3,7 +3,6 @@ package putio
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -58,7 +57,7 @@ func TestTransfers_Get(t *testing.T) {
 	`
 	mux.HandleFunc("/v2/transfers/1", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	transfer, err := client.Transfers.Get(context.Background(), 1)
@@ -140,7 +139,7 @@ func TestTransfers_List(t *testing.T) {
 
 	mux.HandleFunc("/v2/transfers/list", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	transfers, err := client.Transfers.List(context.Background())
@@ -215,7 +214,7 @@ func TestTransfers_Add(t *testing.T) {
 			return
 		}
 
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	transfer, err := client.Transfers.Add(
@@ -308,7 +307,7 @@ func TestTransfers_Retry(t *testing.T) {
 			return
 		}
 
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	transfer, err := client.Transfers.Retry(context.Background(), 1)
@@ -364,7 +363,7 @@ func TestTransfers_Cancel(t *testing.T) {
 			}
 		}
 
-		fmt.Fprintln(w, `{"status":"OK"}`)
+		writeResponse(t, w, `{"status":"OK"}`)
 	})
 
 	err := client.Transfers.Cancel(context.Background(), 1)
@@ -396,7 +395,7 @@ func TestTransfers_Clean(t *testing.T) {
 	mux.HandleFunc("/v2/transfers/clean", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
-		fmt.Fprintln(w, `{"status":"OK"}`)
+		writeResponse(t, w, `{"status":"OK"}`)
 	})
 
 	err := client.Transfers.Clean(context.Background())

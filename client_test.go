@@ -2,6 +2,7 @@ package putio
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -36,6 +37,13 @@ func testMethod(t *testing.T, r *http.Request, want string) {
 func testHeader(t *testing.T, r *http.Request, key, value string) { // nolint
 	if r.Header.Get(key) != value {
 		t.Errorf("missing header. want: %q: %q", key, value)
+	}
+}
+
+func writeResponse(t *testing.T, w http.ResponseWriter, body string) {
+	t.Helper()
+	if _, err := fmt.Fprintln(w, body); err != nil {
+		t.Errorf("write response: %v", err)
 	}
 }
 

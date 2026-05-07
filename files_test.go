@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -40,7 +39,7 @@ func TestFiles_Get(t *testing.T) {
 
 	mux.HandleFunc("/v2/files/1", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 	mux.HandleFunc("/v2/files/2", http.NotFound)
 
@@ -138,7 +137,7 @@ func TestFiles_List(t *testing.T) {
 			return
 		}
 
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	files, parent, err := client.Files.List(context.Background(), 0)
@@ -197,7 +196,7 @@ func TestFiles_CreateFolder(t *testing.T) {
 	mux.HandleFunc("/v2/files/create-folder", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	file, err := client.Files.CreateFolder(context.Background(), "foobar", 0)
@@ -223,7 +222,7 @@ func TestFiles_Delete(t *testing.T) {
 	mux.HandleFunc("/v2/files/delete", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
-		fmt.Fprintln(w, `{"status": "OK"}`)
+		writeResponse(t, w, `{"status": "OK"}`)
 	})
 
 	err := client.Files.Delete(context.Background(), 1, 2, 3)
@@ -245,7 +244,7 @@ func TestFiles_Rename(t *testing.T) {
 	mux.HandleFunc("/v2/files/rename", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
-		fmt.Fprintln(w, `{"status":"OK"}`)
+		writeResponse(t, w, `{"status":"OK"}`)
 	})
 
 	err := client.Files.Rename(context.Background(), 1, "bar")
@@ -267,7 +266,7 @@ func TestFiles_Move(t *testing.T) {
 	mux.HandleFunc("/v2/files/move", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
-		fmt.Fprintln(w, `{"status":"OK"}`)
+		writeResponse(t, w, `{"status":"OK"}`)
 	})
 
 	// move 1, 2, 3, 4 and 5 to root directory (0).
@@ -359,7 +358,7 @@ func TestFiles_Search(t *testing.T) {
 `
 	mux.HandleFunc("/v2/files/search/", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	s, err := client.Files.Search(context.Background(), "naber", 1)
@@ -395,7 +394,7 @@ func TestFiles_SetVideoPosition(t *testing.T) {
 	mux.HandleFunc("/v2/files/1/start-from", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
-		fmt.Fprintln(w, `{"statutus":"OK"}`)
+		writeResponse(t, w, `{"status":"OK"}`)
 	})
 
 	err := client.Files.SetVideoPosition(context.Background(), 1, 10)
@@ -417,7 +416,7 @@ func TestFiles_DeleteVideoPosition(t *testing.T) {
 	mux.HandleFunc("/v2/files/1/start-from/delete", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
-		fmt.Fprintln(w, `{"statutus":"OK"}`)
+		writeResponse(t, w, `{"status":"OK"}`)
 	})
 
 	err := client.Files.DeleteVideoPosition(context.Background(), 1)
@@ -513,7 +512,7 @@ func TestFiles_Shared(t *testing.T) {
 `
 	mux.HandleFunc("/v2/files/shared", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	files, err := client.Files.shared(context.Background())
@@ -553,7 +552,7 @@ func TestFiles_SharedWith(t *testing.T) {
 
 	mux.HandleFunc("/v2/files/1/shared-with", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	files, err := client.Files.sharedWith(context.Background(), 1)
@@ -593,7 +592,7 @@ func TestFiles_Subtitles(t *testing.T) {
 `
 	mux.HandleFunc("/v2/files/1/subtitles", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	subtitles, err := client.Files.Subtitles(context.Background(), 1)

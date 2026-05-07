@@ -68,10 +68,11 @@ func (f *ConfigService) SetAll(ctx context.Context, config interface{}) error {
 		return fmt.Errorf("%w", err)
 	}
 	req.Header.Set("content-type", "application/json")
-	_, err = f.client.Do(req, nil) // nolint:bodyclose
+	resp, err := f.client.Do(req, nil)
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
+	_ = resp.Body.Close()
 	return nil
 }
 
@@ -95,10 +96,11 @@ func (f *ConfigService) Set(ctx context.Context, key string, value interface{}) 
 		return fmt.Errorf("%w", err)
 	}
 	req.Header.Set("content-type", "application/json")
-	_, err = f.client.Do(req, nil) // nolint:bodyclose
+	resp, err := f.client.Do(req, nil)
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
+	_ = resp.Body.Close()
 	return nil
 
 }
@@ -109,9 +111,10 @@ func (f *ConfigService) Del(ctx context.Context, key string) error {
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
-	_, err = f.client.Do(req, nil) // nolint:bodyclose
+	resp, err := f.client.Do(req, nil)
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
+	_ = resp.Body.Close()
 	return nil
 }

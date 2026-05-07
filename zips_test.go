@@ -2,7 +2,6 @@ package putio
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"testing"
 )
@@ -21,7 +20,7 @@ func TestZips_Get(t *testing.T) {
 `
 	mux.HandleFunc("/v2/zips/1", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	zip, err := client.Zips.Get(context.Background(), 1)
@@ -51,7 +50,7 @@ func TestZips_List(t *testing.T) {
 `
 	mux.HandleFunc("/v2/zips/list", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	zips, err := client.Zips.List(context.Background())
@@ -81,7 +80,7 @@ func TestZips_Create(t *testing.T) {
 	mux.HandleFunc("/v2/zips/create", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	id, err := client.Zips.Create(context.Background(), 666)

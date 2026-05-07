@@ -2,7 +2,6 @@ package putio
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"testing"
 )
@@ -59,7 +58,7 @@ func TestAccount_Info(t *testing.T) {
 `
 	mux.HandleFunc("/v2/account/info", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	info, err := client.Account.Info(context.Background())
@@ -107,7 +106,7 @@ func TestAccount_Settings(t *testing.T) {
 `
 	mux.HandleFunc("/v2/account/settings", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	settings, err := client.Account.Settings(context.Background())

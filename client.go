@@ -148,14 +148,23 @@ func (c *Client) NewRequest(ctx context.Context, method, relURL string, body io.
 // v is nil. If v is nil, response body is not closed and the body can be used
 // for streaming.
 func (c *Client) Do(r *http.Request, v interface{}) (*http.Response, error) {
+	var cancel context.CancelFunc
 	if c.Timeout > 0 {
-		ctx, cancel := context.WithTimeout(r.Context(), c.Timeout)
-		defer cancel()
+		ctx, timeoutCancel := context.WithTimeout(r.Context(), c.Timeout)
+		cancel = timeoutCancel
+		defer func() {
+			if v != nil {
+				cancel()
+			}
+		}()
 		r = r.WithContext(ctx)
 	}
 
 	resp, err := c.client.Do(r)
 	if err != nil {
+		if cancel != nil {
+			cancel()
+		}
 		return nil, fmt.Errorf("%w", err)
 	}
 
@@ -163,10 +172,19 @@ func (c *Client) Do(r *http.Request, v interface{}) (*http.Response, error) {
 	if err != nil {
 		// close the body at all times if there is an http error
 		_ = resp.Body.Close()
+		if cancel != nil {
+			cancel()
+		}
 		return resp, err
 	}
 
 	if v == nil {
+		if cancel != nil {
+			resp.Body = &cancelReadCloser{
+				ReadCloser: resp.Body,
+				cancel:     cancel,
+			}
+		}
 		return resp, nil
 	}
 
@@ -181,6 +199,17 @@ func (c *Client) Do(r *http.Request, v interface{}) (*http.Response, error) {
 	}
 
 	return resp, nil
+}
+
+type cancelReadCloser struct {
+	io.ReadCloser
+	cancel context.CancelFunc
+}
+
+func (c *cancelReadCloser) Close() error {
+	err := c.ReadCloser.Close()
+	c.cancel()
+	return err
 }
 
 // checkResponse is the entrypoint to reading the API response. If the response
