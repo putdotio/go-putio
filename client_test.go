@@ -2,6 +2,7 @@ package putio
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -71,4 +72,60 @@ func TestNewRequest_customUserAgent(t *testing.T) {
 	if got := req.Header.Get("User-Agent"); got != userAgent {
 		t.Errorf("got: %v, want: %v", got, userAgent)
 	}
+}
+
+func TestValidateToken(t *testing.T) {
+	t.Run("valid token", func(t *testing.T) {
+		setup()
+		defer teardown()
+
+		mux.HandleFunc("/v2/oauth2/validate", func(w http.ResponseWriter, r *http.Request) {
+			testMethod(t, r, http.MethodGet)
+			_, _ = w.Write([]byte(`{"result":true,"user_id":123}`))
+		})
+
+		got, err := client.ValidateToken(context.Background())
+		if err != nil {
+			t.Fatalf("ValidateToken returned error: %v", err)
+		}
+		if got == nil || *got != 123 {
+			t.Fatalf("ValidateToken userID = %v, want 123", got)
+		}
+	})
+
+	t.Run("invalid token result", func(t *testing.T) {
+		setup()
+		defer teardown()
+
+		mux.HandleFunc("/v2/oauth2/validate", func(w http.ResponseWriter, r *http.Request) {
+			testMethod(t, r, http.MethodGet)
+			_, _ = w.Write([]byte(`{"result":false,"token_id":null,"token_scope":null,"user_id":null}`))
+		})
+
+		got, err := client.ValidateToken(context.Background())
+		if got != nil {
+			t.Fatalf("ValidateToken userID = %v, want nil", got)
+		}
+		if !errors.Is(err, ErrInvalidToken) {
+			t.Fatalf("ValidateToken error = %v, want %v", err, ErrInvalidToken)
+		}
+	})
+
+	t.Run("missing user id", func(t *testing.T) {
+		setup()
+		defer teardown()
+
+		mux.HandleFunc("/v2/oauth2/validate", func(w http.ResponseWriter, r *http.Request) {
+			testMethod(t, r, http.MethodGet)
+			_, _ = w.Write([]byte(`{}`))
+		})
+
+		got, err := client.ValidateToken(context.Background())
+		if got != nil {
+			t.Fatalf("ValidateToken userID = %v, want nil", got)
+		}
+		if !errors.Is(err, ErrInvalidToken) {
+			t.Fatalf("ValidateToken error = %v, want %v", err, ErrInvalidToken)
+		}
+	})
 }
