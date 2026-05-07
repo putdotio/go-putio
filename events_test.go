@@ -2,7 +2,6 @@ package putio
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"testing"
 )
@@ -36,7 +35,7 @@ func TestEvents_List(t *testing.T) {
 `
 	mux.HandleFunc("/v2/events/list", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	events, err := client.Events.List(context.Background())
@@ -60,7 +59,7 @@ func TestEvents_Delete(t *testing.T) {
 	mux.HandleFunc("/v2/events/delete", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
-		fmt.Fprintln(w, `{"status":"OK"}`)
+		writeResponse(t, w, `{"status":"OK"}`)
 	})
 
 	err := client.Events.Delete(context.Background())

@@ -1,5 +1,4 @@
-[![Golang CI Linter](https://github.com/putdotio/go-putio/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/putdotio/go-putio/actions/workflows/golangci-lint.yml)
-[![Golang Tests](https://github.com/putdotio/go-putio/actions/workflows/go-test.yml/badge.svg)](https://github.com/putdotio/go-putio/actions/workflows/go-test.yml)
+[![CI](https://github.com/putdotio/go-putio/actions/workflows/ci.yml/badge.svg)](https://github.com/putdotio/go-putio/actions/workflows/ci.yml)
 
 
 # putio

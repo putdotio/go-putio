@@ -2,7 +2,6 @@ package putio
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"testing"
 )
@@ -47,7 +46,7 @@ func TestFriends_List(t *testing.T) {
 
 	mux.HandleFunc("/v2/friends/list", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	friends, err := client.Friends.List(context.Background())
@@ -92,7 +91,7 @@ func TestFriends_WaitingRequests(t *testing.T) {
 
 	mux.HandleFunc("/v2/friends/waiting-requests", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
-		fmt.Fprintln(w, fixture)
+		writeResponse(t, w, fixture)
 	})
 
 	friends, err := client.Friends.WaitingRequests(context.Background())
@@ -120,7 +119,7 @@ func TestFriends_Request(t *testing.T) {
 	mux.HandleFunc("/v2/friends/annie/request", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
-		fmt.Fprintln(w, `{"status":"OK"}`)
+		writeResponse(t, w, `{"status":"OK"}`)
 	})
 
 	err := client.Friends.Request(context.Background(), "annie")
@@ -142,7 +141,7 @@ func TestFriends_Approve(t *testing.T) {
 	mux.HandleFunc("/v2/friends/bob/approve", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
-		fmt.Fprintln(w, `{"status":"OK"}`)
+		writeResponse(t, w, `{"status":"OK"}`)
 	})
 
 	err := client.Friends.Approve(context.Background(), "bob")
@@ -164,7 +163,7 @@ func TestFriends_Deny(t *testing.T) {
 	mux.HandleFunc("/v2/friends/andy/deny", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
-		fmt.Fprintln(w, `{"status":"OK"}`)
+		writeResponse(t, w, `{"status":"OK"}`)
 	})
 
 	err := client.Friends.Deny(context.Background(), "andy")
@@ -186,7 +185,7 @@ func TestFriends_Unfriend(t *testing.T) {
 	mux.HandleFunc("/v2/friends/lin/unfriend", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodPost)
 		testHeader(t, r, "Content-Type", "application/x-www-form-urlencoded")
-		fmt.Fprintln(w, `{"status":"OK"}`)
+		writeResponse(t, w, `{"status":"OK"}`)
 	})
 
 	err := client.Friends.Unfriend(context.Background(), "lin")
