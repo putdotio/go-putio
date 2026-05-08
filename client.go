@@ -92,11 +92,18 @@ func (c *Client) ValidateToken(ctx context.Context) (userID *int64, err error) {
 		return
 	}
 	var r struct {
+		Result *bool  `json:"result"`
 		UserID *int64 `json:"user_id"`
 	}
 	_, err = c.Do(req, &r) // nolint:bodyclose
 	if err != nil {
 		return nil, err
+	}
+	if r.Result != nil && !*r.Result {
+		return nil, ErrInvalidToken
+	}
+	if r.UserID == nil {
+		return nil, ErrInvalidToken
 	}
 	return r.UserID, nil
 }

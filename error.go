@@ -19,6 +19,7 @@ var (
 	ErrNoFileIsGiven            = errors.New("no files given")
 	ErrEmptyUserName            = errors.New("empty username")
 	ErrEmptyURL                 = errors.New("empty URL")
+	ErrInvalidToken             = errors.New("invalid token")
 	ErrUnexpected               = errors.New("unexpected error")
 )
 
