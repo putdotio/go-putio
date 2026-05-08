@@ -5,9 +5,6 @@ on:
   push:
     branches:
       - master
-      - main
-    tags:
-      - "v*"
   workflow_dispatch:
 
 permissions:
@@ -63,3 +60,32 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: v2.11.3
+
+  release:
+    name: Release Go module
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, '[skip ci]')
+    needs:
+      - test
+      - quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: release-${{ github.repository }}-master
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v6
+        with:
+          extra_plugins: |
+            @semantic-release/commit-analyzer
+            @semantic-release/release-notes-generator
+            @semantic-release/github
+            conventional-changelog-conventionalcommits
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
