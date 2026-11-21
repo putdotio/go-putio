@@ -12,7 +12,24 @@ type AccountService struct {
 
 // Info retrieves user account information.
 func (a *AccountService) Info(ctx context.Context) (AccountInfo, error) {
-	req, err := a.client.NewRequest(ctx, http.MethodGet, "/v2/account/info", nil)
+	return a.info(ctx, "/v2/account/info")
+}
+
+// DownloadToken retrieves the account download token. Media requests, such as
+// HLS playlists, authenticate with this token instead of the OAuth token.
+func (a *AccountService) DownloadToken(ctx context.Context) (string, error) {
+	info, err := a.info(ctx, "/v2/account/info?download_token=1")
+	if err != nil {
+		return "", err
+	}
+	if info.DownloadToken == "" {
+		return "", ErrMissingDownloadToken
+	}
+	return info.DownloadToken, nil
+}
+
+func (a *AccountService) info(ctx context.Context, relURL string) (AccountInfo, error) {
+	req, err := a.client.NewRequest(ctx, http.MethodGet, relURL, nil)
 	if err != nil {
 		return AccountInfo{}, err
 	}

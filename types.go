@@ -110,6 +110,7 @@ type AccountInfo struct {
 		Size  int64 `json:"size"`
 		Used  int64 `json:"used"`
 	} `json:"disk"`
+	DownloadToken             string   `json:"download_token,omitempty"`
 	HasVoucher                bool     `json:"has_voucher"`
 	Mail                      string   `json:"mail"`
 	PlanExpirationDate        string   `json:"plan_expiration_date"`

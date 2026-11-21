@@ -30,6 +30,11 @@ type Client struct {
 	// HTTP client used to communicate with Put.io API
 	client *http.Client
 
+	// MediaClient sends media requests, which authenticate with the account
+	// download token. It must not add the OAuth token. Defaults to
+	// http.DefaultClient.
+	MediaClient *http.Client
+
 	// Base URL for API requests
 	BaseURL *url.URL
 
@@ -67,6 +72,7 @@ func NewClient(httpClient *http.Client) *Client {
 	baseURL, _ := url.Parse(defaultBaseURL)
 	c := &Client{
 		client:       httpClient,
+		MediaClient:  http.DefaultClient,
 		BaseURL:      baseURL,
 		UserAgent:    defaultUserAgent,
 		ExtraHeaders: make(http.Header),
@@ -155,6 +161,19 @@ func (c *Client) NewRequest(ctx context.Context, method, relURL string, body io.
 // v is nil. If v is nil, response body is not closed and the body can be used
 // for streaming.
 func (c *Client) Do(r *http.Request, v interface{}) (*http.Response, error) {
+	return c.do(c.client, r, v)
+}
+
+func (c *Client) doMedia(r *http.Request, downloadToken string) (*http.Response, error) {
+	mediaClient := c.MediaClient
+	if mediaClient == nil {
+		mediaClient = http.DefaultClient
+	}
+	r.Header.Set("Authorization", "Token "+downloadToken)
+	return c.do(mediaClient, r, nil)
+}
+
+func (c *Client) do(httpClient *http.Client, r *http.Request, v interface{}) (*http.Response, error) {
 	var cancel context.CancelFunc
 	if c.Timeout > 0 {
 		ctx, timeoutCancel := context.WithTimeout(r.Context(), c.Timeout)
@@ -167,7 +186,7 @@ func (c *Client) Do(r *http.Request, v interface{}) (*http.Response, error) {
 		r = r.WithContext(ctx)
 	}
 
-	resp, err := c.client.Do(r)
+	resp, err := httpClient.Do(r)
 	if err != nil {
 		if cancel != nil {
 			cancel()

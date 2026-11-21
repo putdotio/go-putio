@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"golang.org/x/oauth2"
 )
 
 func TestFiles_Get(t *testing.T) {
@@ -454,10 +456,26 @@ http://qthttp.apple.com.edgesuite.net/1010qwoeiuryfg/2540_vod.m3u8
 #EXT-X-STREAM-INF:PROGRAM-ID=1, BANDWIDTH=3477293
 http://qthttp.apple.com.edgesuite.net/1010qwoeiuryfg/3340_vod.m3u8
 `
+	mux.HandleFunc("/v2/account/info", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, http.MethodGet)
+		testHeader(t, r, "Authorization", "Bearer oauth-token")
+		if r.URL.Query().Get("download_token") != "1" {
+			t.Errorf("account info query: got %q, want download_token=1", r.URL.RawQuery)
+		}
+		writeResponse(t, w, `{"info": {"download_token": "download-token"}, "status": "OK"}`)
+	})
 	mux.HandleFunc("/v2/files/1/hls/media.m3u8", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
+		testHeader(t, r, "Authorization", "Token download-token")
+		if r.URL.RawQuery != "subtitle_key=all" {
+			t.Errorf("playlist query: got %q, want subtitle_key=all", r.URL.RawQuery)
+		}
 		http.ServeContent(w, r, "media.m3u8", time.Now().UTC(), strings.NewReader(sampleHLS))
 	})
+
+	baseURL := client.BaseURL
+	client = NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "oauth-token"})))
+	client.BaseURL = baseURL
 
 	body, err := client.Files.HLSPlaylist(context.Background(), 1, "all")
 	if err != nil {
@@ -486,6 +504,23 @@ http://qthttp.apple.com.edgesuite.net/1010qwoeiuryfg/3340_vod.m3u8
 	_, err = client.Files.HLSPlaylist(context.Background(), 1, "")
 	if err == nil {
 		t.Errorf("empty key is accepted")
+	}
+}
+
+func TestFiles_HLSPlaylistWithoutDownloadToken(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/v2/account/info", func(w http.ResponseWriter, r *http.Request) {
+		writeResponse(t, w, `{"info": {}, "status": "OK"}`)
+	})
+	mux.HandleFunc("/v2/files/1/hls/media.m3u8", func(w http.ResponseWriter, r *http.Request) {
+		t.Errorf("playlist requested without a download token")
+	})
+
+	_, err := client.Files.HLSPlaylist(context.Background(), 1, "all")
+	if !errors.Is(err, ErrMissingDownloadToken) {
+		t.Errorf("got: %v, want: %v", err, ErrMissingDownloadToken)
 	}
 }
 
