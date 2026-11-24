@@ -5,9 +5,7 @@
 // you. The easiest and recommended way to do this is using the golang.org/x/oauth2
 // library, but you can always use any other library that provides an http.Client.
 //
-// Note that when using an authenticated Client, all API calls made by the client
-// will include the specified OAuth token. Therefore, authenticated clients should
-// almost never be shared between different users. Media requests, such as
-// HLSPlaylist, authenticate with the account download token instead and are sent
-// through Client.MediaClient.
+// Note that when using an authenticated Client, all calls made by the client will
+// include the specified OAuth token. Therefore, authenticated clients should
+// almost never be shared between different users.
 package putio

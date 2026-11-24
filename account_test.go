@@ -2,6 +2,7 @@ package putio
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"testing"
 )
@@ -120,5 +121,40 @@ func TestAccount_Settings(t *testing.T) {
 
 	if settings.DefaultSubtitleLanguage != "tur" {
 		t.Errorf("got: %v, want: tr", settings.DefaultSubtitleLanguage)
+	}
+}
+
+func TestAccount_DownloadToken(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/v2/account/info", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, http.MethodGet)
+		if r.URL.RawQuery != "download_token=1" {
+			t.Errorf("account info query: got %q, want download_token=1", r.URL.RawQuery)
+		}
+		writeResponse(t, w, `{"info": {"download_token": "fake-download-token"}, "status": "OK"}`)
+	})
+
+	token, err := client.Account.DownloadToken(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if token != "fake-download-token" {
+		t.Errorf("got: %q, want: %q", token, "fake-download-token")
+	}
+}
+
+func TestAccount_DownloadTokenMissing(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/v2/account/info", func(w http.ResponseWriter, r *http.Request) {
+		writeResponse(t, w, `{"info": {}, "status": "OK"}`)
+	})
+
+	_, err := client.Account.DownloadToken(context.Background())
+	if !errors.Is(err, ErrMissingDownloadToken) {
+		t.Errorf("got: %v, want: %v", err, ErrMissingDownloadToken)
 	}
 }

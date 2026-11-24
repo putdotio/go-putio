@@ -373,16 +373,9 @@ func (f *FilesService) DownloadSubtitle(
 
 // HLSPlaylist serves a HLS playlist for a video file. Use “all” as
 // subtitleKey to get available subtitles for user’s preferred languages.
-// The playlist request authenticates with the account download token, which
-// HLSPlaylist fetches first, and is sent through Client.MediaClient.
 func (f *FilesService) HLSPlaylist(ctx context.Context, id int64, subtitleKey string) (io.ReadCloser, error) {
 	if subtitleKey == "" {
 		return nil, ErrEmptySubtitleKey
-	}
-
-	downloadToken, err := f.client.Account.DownloadToken(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
 	}
 
 	params := url.Values{}
@@ -397,7 +390,7 @@ func (f *FilesService) HLSPlaylist(ctx context.Context, id int64, subtitleKey st
 		return nil, fmt.Errorf("%w", err)
 	}
 
-	resp, err := f.client.doMedia(req, downloadToken) // nolint:bodyclose
+	resp, err := f.client.Do(req, nil) // nolint:bodyclose
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
