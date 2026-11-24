@@ -456,6 +456,9 @@ http://qthttp.apple.com.edgesuite.net/1010qwoeiuryfg/3340_vod.m3u8
 `
 	mux.HandleFunc("/v2/files/1/hls/media.m3u8", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
+		if r.URL.RawQuery != "subtitle_key=all" {
+			t.Errorf("playlist query: got %q, want subtitle_key=all", r.URL.RawQuery)
+		}
 		http.ServeContent(w, r, "media.m3u8", time.Now().UTC(), strings.NewReader(sampleHLS))
 	})
 

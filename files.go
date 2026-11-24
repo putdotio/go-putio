@@ -378,10 +378,12 @@ func (f *FilesService) HLSPlaylist(ctx context.Context, id int64, subtitleKey st
 		return nil, ErrEmptySubtitleKey
 	}
 
+	params := url.Values{}
+	params.Set("subtitle_key", subtitleKey)
 	req, err := f.client.NewRequest(
 		ctx,
 		http.MethodGet,
-		"/v2/files/"+itoa(id)+"/hls/media.m3u8?subtitle_key"+subtitleKey,
+		"/v2/files/"+itoa(id)+"/hls/media.m3u8?"+params.Encode(),
 		nil,
 	)
 	if err != nil {
